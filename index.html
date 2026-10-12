@@ -52,7 +52,7 @@
 <section id="yozilish" class="book"><div class="wrap two">
 <div class="info rv"><span class="tag">Aloqa</span><h2>Qabulga yoziling</h2><p>Qo‘ng‘iroq qiling yoki formani to‘ldiring — arizangiz Telegram orqali yuboriladi.</p>
 <a class="big" href="tel:+998507129228">+998 50 712 92 28</a>
-<p><b>Manzil:</b> Termiz shahri</p><p><b>Ish vaqti:</b> Dushanba — Shanba, 09:00 — 18:00</p><p><a href="https://t.me/+998507129228" target="_blank" rel="noopener" style="color:var(--terra);font-weight:650">Telegramda yozish →</a></p></div>
+<p><b>Manzil:</b> Termiz shahri</p><p><b>Ish vaqti:</b> Dushanba — Shanba, 09:00 — 18:00</p><p><a href="https://t.me/psixologmarkaz_qabul_bot" target="_blank" rel="noopener" style="color:var(--terra);font-weight:650">Telegramda yozish →</a></p></div>
 <form id="fm" novalidate class="rv">
 <label>Ismingiz<input name="name" autocomplete="name"><span class="err"></span></label>
 <label>Telefon raqamingiz<input name="phone" inputmode="tel" placeholder="+998 XX XXX XX XX" autocomplete="tel"><span class="err"></span></label>
@@ -83,11 +83,53 @@ fm.service.innerHTML='<option value="">Tanlang</option>'+SV.map(s=>`<option>${s[
 fm.date.min=new Date().toISOString().slice(0,10);
 fm.phone.addEventListener("input",()=>{let d=fm.phone.value.replace(/\D/g,"");if(!d.startsWith("998"))d="998"+d;d=d.slice(0,12);fm.phone.value="+"+[d.slice(0,3),d.slice(3,5),d.slice(5,8),d.slice(8,10),d.slice(10,12)].filter(Boolean).join(" ")});
 const E=(el,m)=>{el.parentElement.querySelector(".err").textContent=m||"";return!m};
+
+// TELEGRAM BOT INTEGRATSIYASI
+const BOT_TOKEN = '8614132242:AAGfy5ZIpR56tWuIa3ere7oKq-ZH9-LN4fk';
+const CHAT_ID = '1090733464';
+
 fm.addEventListener("submit",e=>{e.preventDefault();
 const ok=[E(fm.name,fm.name.value.trim().length<2&&"Ismingizni kiriting"),E(fm.phone,!/^\+998 \d{2} \d{3} \d{2} \d{2}$/.test(fm.phone.value)&&"Format: +998 XX XXX XX XX"),E(fm.service,!fm.service.value&&"Xizmatni tanlang"),E(fm.date,!fm.date.value&&"Sanani tanlang")].every(Boolean);
 if(!ok)return;
-const t=`Qabulga yozilish\nIsm: ${fm.name.value}\nTelefon: ${fm.phone.value}\nXizmat: ${fm.service.value}\nSana: ${fm.date.value}\nFormat: ${fm.mode.value}`;
-window.open("https://t.me/+998507129228?text="+encodeURIComponent(t),"_blank");fm.reset()});
+
+const btn = fm.querySelector("button[type='submit']");
+btn.disabled = true;
+btn.textContent = "Yuborilmoqda...";
+
+const text = `📌 <b>Yangi qabul arizasi:</b>\n\n` +
+             `👤 <b>Ismi:</b> ${fm.name.value}\n` +
+             `📞 <b>Tel:</b> ${fm.phone.value}\n` +
+             `🛠 <b>Xizmat:</b> ${fm.service.value}\n` +
+             `📅 <b>Sana:</b> ${fm.date.value}\n` +
+             `💻 <b>Format:</b> ${fm.mode.value}`;
+
+fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    chat_id: CHAT_ID,
+    text: text,
+    parse_mode: 'HTML'
+  })
+})
+.then(res => res.json())
+.then(data => {
+  if (data.ok) {
+    alert("Arizangiz muvaffaqiyatli yuborildi!");
+    fm.reset();
+  } else {
+    alert("Xatolik yuz berdi! Botga /start bosganingizni tekshiring.");
+  }
+})
+.catch(err => {
+  console.error(err);
+  alert("Internet ulanishida xatolik yuz berdi.");
+})
+.finally(() => {
+  btn.disabled = false;
+  btn.textContent = "Telegramda yuborish →";
+});
+});
 </script>
 </body>
 </html>
